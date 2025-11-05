@@ -1,0 +1,4 @@
+dwave-ocean-sdk
+dimod
+qiskit
+qiskit-optimization
