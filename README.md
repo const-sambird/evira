@@ -1,12 +1,12 @@
 # squbita
 
-The **S**ingle-**Qu**bit **B**udget Constraint **I**ndex **T**uning **A**dvisor is an algorithm that generates index configurations (given they are formulated as combinatorial optimisation problems) using quantum annealing.
+The **E**fficient **V**ariable Encoding **I**ndex **R**ecommendation **A**lgorithm is an algorithm that generates index configurations (given they are formulated as combinatorial optimisation problems) using quantum annealing.
 
 ## Operation
 
 The example problems can be found in [`problem.py`](./problem.py). Each problem needs a list of benefits for each index candidate, cost of materialising that candidate, and maximum storage budget.
 
-Modify [`squbita.py`](./squbita.py) to select the desired problem, then:
+Modify [`evira.py`](./evira.py) to select the desired problem, then:
 
 ### Installation
 
@@ -21,5 +21,5 @@ pip install -r requirements.txt
 ### Run
 
 ```bash
-python squbita.py
+python evira.py
 ```
