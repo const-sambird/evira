@@ -1,4 +1,4 @@
-# squbita
+# evira
 
 The **E**fficient **V**ariable Encoding **I**ndex **R**ecommendation **A**lgorithm is an algorithm that generates index configurations (given they are formulated as combinatorial optimisation problems) using quantum annealing.
 
