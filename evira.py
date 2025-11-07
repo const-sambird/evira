@@ -1,14 +1,11 @@
-import numpy as np
-from dwave.system import DWaveSampler, EmbeddingComposite
-from dwave.samplers import PathIntegralAnnealingSampler, SimulatedAnnealingSampler
-from dimod import ExactSolver
+import argparse
 
 from optim import AnnealingOptimiser, QAOAOptimiser
-from problem import QIA_PROBLEMS
+from problem import PROBLEMS
 from qubo import IndexSelectionQUBO
 from util import compute_cost
 
-def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, mode = 'simulate', type = 'anneal'):
+def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, mode = 'simulate', type = 'anneal'):
     assert type == 'anneal' or type == 'qaoa', 'select a quantum approach'
     assert mode == 'simulate' or mode == 'quantum', 'select an execution mode'
     # 1. initialise
@@ -25,7 +22,7 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, mode = 'simulat
     if type == 'anneal':
         optimiser = AnnealingOptimiser(benefits, weights, budget, mode)
     else:
-        optimiser = QAOAOptimiser(benefits, weights, budget, mode = mode)
+        optimiser = QAOAOptimiser(benefits, weights, budget, qaoa_reps, mode)
     while True:
         print('***** starting iteration', t)
         # 3. compute QUBO matrix
@@ -69,7 +66,29 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, mode = 'simulat
     # 10. iterate 3-9
     return best_xfeas
 
+def create_arguments():
+    parser = argparse.ArgumentParser()
+
+    # hyperparameters - could leave at defaults
+
+    parser.add_argument('-r', '--qaoa-reps', type=int, default=1, help='the number of the repetitions in the QAOA ansatz')
+    parser.add_argument('--rho', type=float, default=0.5, help='rho, penalty multiplier')
+    parser.add_argument('-t', '--t-max', type=int, default=50, help='t_max, maximum number of iterations')
+    parser.add_argument('--t-conv', type=int, default=10, help='t_conv, maximum number of iterations without improvement in x_feas')
+    parser.add_argument('--epsilon', type=float, default=1e-3, help='slack variable convergence criterion')
+
+    # configuration - set per problem
+
+    parser.add_argument('-q', '--quantum', action='store_true', help='run on real quantum hardware instead of simulating')
+    parser.add_argument('-p', '--problem', choices=list(PROBLEMS.keys()), default='I7', help='which index selection problem should we solve?')
+    parser.add_argument('type', type=str, choices=['anneal', 'qaoa'], help='use annealing optimisation or gate-based QAOA?')
+
+    return parser.parse_args()
+
 if __name__ == '__main__':
-    p = QIA_PROBLEMS['CDB_I7_ADJ']
-    x = admm(p.benefits, p.weights, p.budget, 0.5, 50, 10, 1e-3)
+    args = create_arguments()
+    p = PROBLEMS[args.problem]
+    x = admm(p.benefits, p.weights, p.budget, args.rho, args.t_max,
+             args.t_conv, args.epsilon, args.qaoa_reps,
+             'quantum' if args.quantum else 'simulate', args.type)
     print(x)

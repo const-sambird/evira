@@ -88,7 +88,6 @@ class QAOAOptimiser:
     def get_qaoa_circuit(self, qubo):
         qc = QAOAAnsatz(cost_operator=qubo, reps=self.reps)
         qc.measure_all()
-        print(qc.parameters)
 
         return qc
     

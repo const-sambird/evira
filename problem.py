@@ -19,3 +19,8 @@ QIA_PROBLEMS = {
 }
 
 TRUMMER_PROBLEM = Problem('Trummer', [], [], 0)
+
+PROBLEMS = {
+    **QIA_PROBLEMS,
+    'Trummer': TRUMMER_PROBLEM
+}
