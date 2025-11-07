@@ -3,22 +3,14 @@ from dwave.system import DWaveSampler, EmbeddingComposite
 from dwave.samplers import PathIntegralAnnealingSampler, SimulatedAnnealingSampler
 from dimod import ExactSolver
 
-from problem import Problem, QIA_PROBLEMS
-from qubo import IndexSelectionQUBO, AnnealerQUBO
+from optim import AnnealingOptimiser, QAOAOptimiser
+from problem import QIA_PROBLEMS
+from qubo import IndexSelectionQUBO
+from util import compute_cost
 
-def get_solver(is_quantum: bool):
-    if is_quantum:
-        return EmbeddingComposite(DWaveSampler())
-    else:
-        return PathIntegralAnnealingSampler()
-
-def compute_cost(x, weights):
-    return sum([x[i] * weights[i] for i in range(len(x))])
-
-def compute_benefit(x, benefits):
-    return sum([x[i] * benefits[i] for i in range(len(x))])
-
-def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, num_reads = 100):
+def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, mode = 'simulate', type = 'anneal'):
+    assert type == 'anneal' or type == 'qaoa', 'select a quantum approach'
+    assert mode == 'simulate' or mode == 'quantum', 'select an execution mode'
     # 1. initialise
     z = 0
     lam = 0
@@ -28,32 +20,21 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, num_reads = 100
     best_xfeas_benefit = -1
     steps_since_improvement = 0
 
-    # 2. apply embedding
-    solver = get_solver(False)
-
     # 2a. initial qubo matrix (we don't need to reinitialise each step)
-    qubo = IndexSelectionQUBO(benefits, weights, budget, lam, rho)
+    qubo = IndexSelectionQUBO(benefits, weights, budget, lam, rho, type)
+    if type == 'anneal':
+        optimiser = AnnealingOptimiser(benefits, weights, budget, mode)
+    else:
+        optimiser = QAOAOptimiser(benefits, weights, budget, mode = mode)
     while True:
         print('***** starting iteration', t)
         # 3. compute QUBO matrix
         qubo.update_classical_vals(lam, z)
 
-        # 4. anneal
-        solution = solver.sample_qubo(qubo.get_qubo(), num_reads=num_reads).record
-
-        # 5. compute x_cost, x_feas using samples
-        x_cost = solution[np.recarray.argmin(solution.energy)]
-        x_costs = np.asarray([compute_cost(np.asarray(sample, dtype=np.float32), weights) for sample in solution.sample])
-        x_benefits = np.asarray([compute_benefit(np.asarray(sample, dtype=np.float32), benefits) for sample in solution.sample])
-        x_benefits = np.where(x_costs <= budget, x_benefits, float('-inf'))
-        x_feas = solution[np.argmax(x_benefits)]
-
-        x_cost_weight = compute_cost(np.asarray(x_cost.sample, dtype=np.float32), weights)
-        x_feas_weight = compute_cost(np.asarray(x_feas.sample, dtype=np.float32), weights)
-        x_feas_benefit = np.max(x_benefits)
+        x_cost, x_feas, x_cost_weight, x_feas_benefit = optimiser.optimise(qubo.get_qubo())
 
         print('x_cost:', x_cost, 'weight:', x_cost_weight)
-        print('x_feas:', x_feas, 'weight:', x_feas_weight)
+        print('x_feas:', x_feas, 'weight:', compute_cost(x_feas, weights))
 
         # 6. update z_star
         z = min(0, x_cost_weight - budget)
@@ -67,6 +48,8 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, num_reads = 100
         if x_feas_benefit > best_xfeas_benefit:
             best_xfeas = x_feas
             best_xfeas_benefit = x_feas_benefit
+            steps_since_improvement = 0
+        elif best_xfeas_benefit == -1:
             steps_since_improvement = 0
         else:
             steps_since_improvement += 1

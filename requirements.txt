@@ -2,3 +2,4 @@ dwave-ocean-sdk
 dimod
 qiskit
 qiskit-optimization
+qiskit-ibm-runtime
