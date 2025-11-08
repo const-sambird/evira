@@ -46,7 +46,7 @@ class GateBasedQUBO:
             self.qubo.binary_var(f'x{i}')
         self.qubo.minimize(constant=0, linear=self.linear_terms, quadratic=self.quadratic_terms)
 
-        return self.qubo.to_ising()[0]
+        return self.qubo.to_ising()
 
 class AnnealerQUBO:
     def __init__(self, linear_terms: list[float], quadratic_terms: list[float]):

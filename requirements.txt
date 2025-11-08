@@ -3,3 +3,5 @@ dimod
 qiskit
 qiskit-optimization
 qiskit-ibm-runtime
+qiskit-algorithms
+qiskit-aer

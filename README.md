@@ -36,6 +36,8 @@ options:
   -h, --help            show this help message and exit
   -r QAOA_REPS, --qaoa-reps QAOA_REPS
                         the number of the repetitions in the QAOA ansatz
+  -s QAOA_SHOTS, --qaoa-shots QAOA_SHOTS
+                        number of shots for the QAOA sampler
   --rho RHO             rho, penalty multiplier
   -t T_MAX, --t-max T_MAX
                         t_max, maximum number of iterations

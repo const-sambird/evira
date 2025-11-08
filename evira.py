@@ -5,7 +5,7 @@ from problem import PROBLEMS
 from qubo import IndexSelectionQUBO
 from util import compute_cost
 
-def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, mode = 'simulate', type = 'anneal'):
+def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, qaoa_shots, mode = 'simulate', type = 'anneal'):
     assert type == 'anneal' or type == 'qaoa', 'select a quantum approach'
     assert mode == 'simulate' or mode == 'quantum', 'select an execution mode'
     # 1. initialise
@@ -22,7 +22,7 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, mode
     if type == 'anneal':
         optimiser = AnnealingOptimiser(benefits, weights, budget, mode)
     else:
-        optimiser = QAOAOptimiser(benefits, weights, budget, qaoa_reps, mode)
+        optimiser = QAOAOptimiser(benefits, weights, budget, qaoa_reps, qaoa_shots, mode)
     while True:
         print('***** starting iteration', t)
         # 3. compute QUBO matrix
@@ -64,7 +64,7 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, mode
         t = t + 1
 
     # 10. iterate 3-9
-    return best_xfeas
+    return best_xfeas, best_xfeas_benefit, t
 
 def create_arguments():
     parser = argparse.ArgumentParser()
@@ -72,6 +72,7 @@ def create_arguments():
     # hyperparameters - could leave at defaults
 
     parser.add_argument('-r', '--qaoa-reps', type=int, default=1, help='the number of the repetitions in the QAOA ansatz')
+    parser.add_argument('-s', '--qaoa-shots', type=int, default=1024, help='number of shots for the QAOA sampler')
     parser.add_argument('--rho', type=float, default=0.5, help='rho, penalty multiplier')
     parser.add_argument('-t', '--t-max', type=int, default=50, help='t_max, maximum number of iterations')
     parser.add_argument('--t-conv', type=int, default=10, help='t_conv, maximum number of iterations without improvement in x_feas')
@@ -88,7 +89,7 @@ def create_arguments():
 if __name__ == '__main__':
     args = create_arguments()
     p = PROBLEMS[args.problem]
-    x = admm(p.benefits, p.weights, p.budget, args.rho, args.t_max,
-             args.t_conv, args.epsilon, args.qaoa_reps,
+    xfeas, benefit, steps = admm(p.benefits, p.weights, p.budget, args.rho, args.t_max,
+             args.t_conv, args.epsilon, args.qaoa_reps, args.qaoa_shots,
              'quantum' if args.quantum else 'simulate', args.type)
-    print(x)
+    print('found solution', xfeas, 'with quality', benefit, 'in', steps, 'steps')
