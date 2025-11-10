@@ -114,7 +114,6 @@ class QAOAOptimiser:
             classical optimiser to get expectation values for the
             trainable QAOA parameters
             '''
-            print('qaoa_objective call')
             # Bind parameters into the QAOA ansatz
             circ = ansatz.assign_parameters(params)
             
