@@ -1,11 +1,9 @@
-import argparse
+from common.optim import AnnealingOptimiser, QAOAOptimiser
+from common.problem import PROBLEMS
+from evira.qubo import IndexSelectionQUBO
+from common.util import compute_cost
 
-from optim import AnnealingOptimiser, QAOAOptimiser
-from problem import PROBLEMS
-from qubo import IndexSelectionQUBO
-from util import compute_cost
-
-def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, qaoa_shots, mode = 'simulate', type = 'anneal'):
+def evira(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, qaoa_shots, mode = 'simulate', type = 'anneal'):
     assert type == 'anneal' or type == 'qaoa', 'select a quantum approach'
     assert mode == 'simulate' or mode == 'quantum', 'select an execution mode'
     # 1. initialise
@@ -65,31 +63,3 @@ def admm(benefits, weights, budget, rho, t_max, t_conv, epsilon, qaoa_reps, qaoa
 
     # 10. iterate 3-9
     return best_xfeas, best_xfeas_benefit, t
-
-def create_arguments():
-    parser = argparse.ArgumentParser()
-
-    # hyperparameters - could leave at defaults
-
-    parser.add_argument('-r', '--qaoa-reps', type=int, default=1, help='the number of the repetitions in the QAOA ansatz')
-    parser.add_argument('-s', '--qaoa-shots', type=int, default=1024, help='number of shots for the QAOA sampler')
-    parser.add_argument('--rho', type=float, default=0.5, help='rho, penalty multiplier')
-    parser.add_argument('-t', '--t-max', type=int, default=50, help='t_max, maximum number of iterations')
-    parser.add_argument('--t-conv', type=int, default=10, help='t_conv, maximum number of iterations without improvement in x_feas')
-    parser.add_argument('--epsilon', type=float, default=1e-3, help='slack variable convergence criterion')
-
-    # configuration - set per problem
-
-    parser.add_argument('-q', '--quantum', action='store_true', help='run on real quantum hardware instead of simulating')
-    parser.add_argument('-p', '--problem', choices=list(PROBLEMS.keys()), default='I7', help='which index selection problem should we solve?')
-    parser.add_argument('type', type=str, choices=['anneal', 'qaoa'], help='use annealing optimisation or gate-based QAOA?')
-
-    return parser.parse_args()
-
-if __name__ == '__main__':
-    args = create_arguments()
-    p = PROBLEMS[args.problem]
-    xfeas, benefit, steps = admm(p.benefits, p.weights, p.budget, args.rho, args.t_max,
-             args.t_conv, args.epsilon, args.qaoa_reps, args.qaoa_shots,
-             'quantum' if args.quantum else 'simulate', args.type)
-    print('found solution', xfeas, 'with quality', benefit, 'in', steps, 'steps')

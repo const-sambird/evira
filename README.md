@@ -4,9 +4,7 @@ The **E**fficient **V**ariable Encoding **I**ndex **R**ecommendation **A**lgorit
 
 ## Operation
 
-The example problems can be found in [`problem.py`](./problem.py). Each problem needs a list of benefits for each index candidate, cost of materialising that candidate, and maximum storage budget.
-
-Modify [`evira.py`](./evira.py) to select the desired problem, then:
+The example problems can be found in [`problem.py`](./common/problem.py). Each problem needs a list of benefits for each index candidate, cost of materialising that candidate, and maximum storage budget.
 
 ### Installation
 
@@ -21,15 +19,17 @@ pip install -r requirements.txt
 ### Run
 
 ```bash
-python evira.py {anneal,qaoa}
+python run.py evira {anneal,qaoa}
 ```
 
 Further command line values will modify the algorithm's behaviour:
 
 ```
-usage: evira.py [-h] [-r QAOA_REPS] [--rho RHO] [-t T_MAX] [--t-conv T_CONV] [--epsilon EPSILON] [-q] [-p {I5,I6,I7,CDB_I7_ADJ,CDB_I7,Trummer}] {anneal,qaoa}
+usage: run.py [-h] [-r QAOA_REPS] [-s QAOA_SHOTS] [--rho RHO] [-t T_MAX] [--t-conv T_CONV] [--epsilon EPSILON] [--lam LAM] [--num-partitions NUM_PARTITIONS] [-q] [-p {I5,I6,I7,CDB_I7_ADJ,CDB_I7,Trummer,I8}]
+              {evira,trummer} {anneal,qaoa}
 
 positional arguments:
+  {evira,trummer}       which index selection algorithm to use
   {anneal,qaoa}         use annealing optimisation or gate-based QAOA?
 
 options:
@@ -43,6 +43,9 @@ options:
                         t_max, maximum number of iterations
   --t-conv T_CONV       t_conv, maximum number of iterations without improvement in x_feas
   --epsilon EPSILON     slack variable convergence criterion
+  --lam LAM             trummer -- penalty term lambda
+  --num-partitions NUM_PARTITIONS
+                        trummer -- index candidate partitions
   -q, --quantum         run on real quantum hardware instead of simulating
   -p {I5,I6,I7,CDB_I7_ADJ,CDB_I7,Trummer}, --problem {I5,I6,I7,CDB_I7_ADJ,CDB_I7,Trummer}
                         which index selection problem should we solve?

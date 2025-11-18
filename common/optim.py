@@ -13,7 +13,7 @@ from qiskit_ibm_runtime import SamplerV2 as Sampler
 
 from qiskit_aer import AerSimulator
 
-from util import compute_benefit, compute_cost
+from common.util import compute_benefit, compute_cost
 
 class AnnealingOptimiser:
     def __init__(self, benefits, weights, budget, mode = 'simulate', num_reads = 100):
