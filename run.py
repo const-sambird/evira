@@ -15,7 +15,7 @@ def create_arguments():
     parser.add_argument('-t', '--t-max', type=int, default=50, help='t_max, maximum number of iterations')
     parser.add_argument('--t-conv', type=int, default=10, help='t_conv, maximum number of iterations without improvement in x_feas')
     parser.add_argument('--epsilon', type=float, default=1e-3, help='slack variable convergence criterion')
-    parser.add_argument('--lam', type=float, default=100, help='trummer -- penalty term lambda')
+    parser.add_argument('--alpha', type=float, default=4, help='trummer -- multiplier for penalty term alpha')
     parser.add_argument('--num-partitions', type=int, default=3, help='trummer -- index candidate partitions')
 
     # configuration - set per problem
@@ -36,5 +36,5 @@ if __name__ == '__main__':
                 'quantum' if args.quantum else 'simulate', args.type)
         print('found solution', xfeas, 'with quality', benefit, 'in', steps, 'steps')
     else:
-        trummer(p.benefits, p.weights, p.budget, args.num_partitions, args.lam, args.qaoa_reps,
+        trummer(p.benefits, p.weights, p.budget, args.num_partitions, args.alpha, args.qaoa_reps,
                 args.qaoa_shots, args.type, 'quantum' if args.quantum else 'simulate')

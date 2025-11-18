@@ -5,8 +5,16 @@ from common.optim import QAOAOptimiser, AnnealingOptimiser
 from common.problem import PROBLEMS
 from common.util import compute_cost
 
-def trummer(benefits, weights, budget, num_partitions, lam, qaoa_reps, qaoa_shots, type, mode = 'simulate'):
+def trummer(benefits, weights, budget, num_partitions, alpha, qaoa_reps, qaoa_shots, type, mode = 'simulate'):
     SPACE_CONSUMPTION_QUBITS = ceil(log2(budget))
+
+    '''
+    Compute the penalty term λ based on the formula given in the paper:
+
+    λ = α * max_i v_i
+    '''
+    lam = alpha * max(benefits)
+    print('using λ =', lam)
 
     qubo = TrummerQUBO(benefits, weights, budget, SPACE_CONSUMPTION_QUBITS, lam, num_partitions, type)
 
